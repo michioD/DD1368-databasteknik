@@ -36,7 +36,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS undirected_friendships
 
 
 CREATE TABLE IF NOT EXISTS posts (
-        post_id                 serial PRIMARY KEY CHECK (post_id <= 0),                -- med serial så kommer detta ändå vara en int >= 1
+        post_id                 serial PRIMARY KEY CHECK (post_id >= 0),                -- med serial så kommer detta ändå vara en int >= 1
         user_id                 integer NOT NULL REFERENCES users(user_id),
         title                   varchar,
         date                    date NOT NULL DEFAULT CURRENT_DATE,
