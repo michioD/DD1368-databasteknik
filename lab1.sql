@@ -1,27 +1,30 @@
 SET search_path TO schema_lab1, public;
 
-
 CREATE TABLE IF NOT EXISTS users (
         user_id                 serial PRIMARY KEY,
         full_name               varchar NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS students (
-        user_id                 integer NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+        user_id                 integer NOT NULL,
         programme               varchar NOT NULL,
-        PRIMARY KEY(user_id)
+        PRIMARY KEY(user_id),
+        CONSTRAINT FK_students FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
 CREATE TABLE IF NOT EXISTS staff (
-        user_id                 integer NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+        user_id                 integer NOT NULL,
         department              varchar(4) NOT NULL CHECK (department IN ('ABE', 'EECS', 'ITM', 'CBH', 'SCI')),
-        PRIMARY KEY (user_id)
+        PRIMARY KEY (user_id),
+        CONSTRAINT FK_staff FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
 CREATE TABLE IF NOT EXISTS friendships (
-        user_id                 integer NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-        friend_user_id  integer NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-        PRIMARY KEY(user_id, friend_user_id)
+        user_id                 integer NOT NULL,
+        friend_user_id  integer NOT NULL,
+        PRIMARY KEY(user_id, friend_user_id),
+        CONSTRAINT FK_friendship_user FOREIGN KEY (user_id) REFERENCES users(user_id),
+        CONSTRAINT FK_friendship_friend FOREIGN KEY (friend_user_id) REFERENCES users(user_id)
 );
 
 
@@ -32,64 +35,75 @@ ALTER TABLE ONLY friendships
         ADD CONSTRAINT check_diff_id CHECK (user_id <> friend_user_id);         -- kan inte ha vänskap med sig själv
 
 CREATE UNIQUE INDEX IF NOT EXISTS undirected_friendships
-  ON schema_lab1.friendships (LEAST(user_id, friend_user_id), GREATEST(user_id, friend_user_id));
+  ON friendships (LEAST(user_id, friend_user_id), GREATEST(user_id, friend_user_id));
 
 
 CREATE TABLE IF NOT EXISTS posts (
         post_id                 serial PRIMARY KEY CHECK (post_id >= 0),                -- med serial så kommer detta ändå vara en int >= 1
-        user_id                 integer NOT NULL REFERENCES users(user_id),
+        user_id                 integer NOT NULL,
         title                   varchar,
-        date                    date NOT NULL DEFAULT CURRENT_DATE,
+        created_at              timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
         place                   varchar,
-        content                 varchar
-);
-
-
-CREATE TABLE IF NOT EXISTS tags (
-        tag_name                varchar(8) PRIMARY KEY CHECK (tag_name IN ('crypto', 'studying', 'question', 'social'))
+        content                 varchar,
+        CONSTRAINT FK_post FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
 CREATE TABLE IF NOT EXISTS post_tag (
-        post_id                 integer NOT NULL REFERENCES posts(post_id) ON DELETE CASCADE,
-        tag_name                varchar(8) NOT NULL REFERENCES tags(tag_name) ON DELETE CASCADE,
-        PRIMARY KEY(post_id, tag_name)
+        post_id                 integer NOT NULL,
+        tag_name                varchar(8) NOT NULL CHECK (tag_name IN ('crypto', 'studying', 'question', 'social')),
+        PRIMARY KEY(post_id, tag_name),
+        CONSTRAINT FK_post_tag__post FOREIGN KEY (post_id) REFERENCES posts(post_id)
+        -- CONSTRAINT FK_post_tag__tag FOREIGN KEY (tag_name) REFERENCES tags(tag_name)
 );
 
 CREATE TABLE IF NOT EXISTS attachments (
-        post_id                 integer NOT NULL REFERENCES posts(post_id) ON DELETE CASCADE,
-        url                     varchar PRIMARY KEY,
-        file_type               varchar NOT NULL,
-        file_size               integer NOT NULL
+        post_id                 integer NOT NULL,
+        url                     varchar NOT NULL,
+        file_type               varchar NOT NULL CHECK (file_type IN ('video', 'image')),
+        file_size               integer NOT NULL CHECK (file_size >= 0),
+        PRIMARY KEY(post_id, url),
+        CONSTRAINT FK_attachment FOREIGN KEY (post_id) REFERENCES posts(post_id)
 );
 
 CREATE TABLE IF NOT EXISTS likes (
-        user_id                 integer NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-        post_id                 integer NOT NULL REFERENCES posts(post_id) ON DELETE CASCADE,
-        times                   date NOT NULL DEFAULT CURRENT_DATE,
-        PRIMARY KEY(user_id, post_id)
+        user_id                 integer NOT NULL,
+        post_id                 integer NOT NULL,
+        liked_at                timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY(user_id, post_id),
+        CONSTRAINT FK_like_user FOREIGN KEY (user_id) REFERENCES users(user_id),
+        CONSTRAINT FK_like_post FOREIGN KEY (post_id) REFERENCES posts(post_id)
 );
 
 CREATE TABLE IF NOT EXISTS events (
         event_id                serial PRIMARY KEY,
-        user_id                 integer NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+        user_id                 integer NOT NULL,
         title                   varchar NOT NULL,
         place                   varchar NOT NULL,
-        start_date              date NOT NULL,
-        end_date                date NOT NULL,
-        duration                integer NOT NULL,
-        CONSTRAINT check_events_dates_order CHECK (end_date >= start_date)
+        start_date              timestamp NOT NULL,
+        end_date                timestamp NOT NULL,
+        duration                interval NOT NULL GENERATED ALWAYS AS (end_date - start_date) STORED,
+        CONSTRAINT check_events_dates_order CHECK (end_date >= start_date),
+        CONSTRAINT FK_events FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
 CREATE TABLE IF NOT EXISTS attendances (
-        event_id                integer NOT NULL REFERENCES events(event_id) ON DELETE CASCADE,
-        user_id                 integer NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
-        PRIMARY KEY(event_id, user_id)
+        event_id                integer NOT NULL,
+        user_id                 integer NOT NULL,
+        PRIMARY KEY(event_id, user_id),
+        CONSTRAINT FK_attendance_event FOREIGN KEY (event_id) REFERENCES events(event_id),
+        CONSTRAINT FK_attendance_user FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
 CREATE TABLE IF NOT EXISTS subscriptions (
         subscription_id serial PRIMARY KEY,
-        user_id                 integer NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+        user_id                 integer NOT NULL,
         date_of_payment date NOT NULL DEFAULT CURRENT_DATE,
         payment_method  varchar NOT NULL CHECK (payment_method IN ('Klarna', 'Swish', 'Card', 'Bitcoin')),
-        expiry_date     date NOT NULL
+        expiry_date     date NOT NULL,
+        CONSTRAINT FK_subscriptions FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
+
+
+-- CREATE TABLE IF NOT EXISTS tags (
+--      tag_name                varchar PRIMARY KEY CHECK (tag_name IN ('crypto', 'studying', 'question', 'social'))
+-- );
