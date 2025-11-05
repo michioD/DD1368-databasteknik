@@ -1,0 +1,40 @@
+// lägger till 6 users
+INSERT INTO users (full_name)
+VALUES ('Isbelle');
+INSERT 0 1
+
+INSERT INTO users (full_name)
+VALUES
+('Lucas'),
+('Isak'),
+('Frida'),
+('Axel'),
+('Blanca');
+INSERT 0 5
+
+// varav 2 staff och resten students
+INSERT INTO students(user_id, programme)
+VALUES(1, 'Teknisk Matematik');
+INSERT 0 1
+
+INSERT INTO staff(user_id, department)
+VALUES (3, 'ABE'),
+(4, 'ITM');
+INSERT 0 2
+
+INSERT INTO students(user_id, programme)
+VALUES (2, 'Teknisk Matematik'),
+(5, 'Elektroteknik'),
+(6, 'Teknisk Fysik');
+INSERT 0 3
+
+// 4 friendships
+INSERT INTO friendships (user_id, friend_user_id)
+VALUES (1, 2);
+INSERT 0 1
+
+INSERT INTO friendships (user_id, friend_user_id)
+VALUES (3, 6),
+(2, 5),
+(4, 6);
+INSERT 0 3
