@@ -1,40 +1,83 @@
-// lägger till 6 users
 INSERT INTO users (full_name)
-VALUES ('Isbelle');
-INSERT 0 1
-
-INSERT INTO users (full_name)
-VALUES
+VALUES (‘Isabelle’),
 ('Lucas'),
 ('Isak'),
 ('Frida'),
 ('Axel'),
 ('Blanca');
-INSERT 0 5
-
-// varav 2 staff och resten students
-INSERT INTO students(user_id, programme)
-VALUES(1, 'Teknisk Matematik');
-INSERT 0 1
 
 INSERT INTO staff(user_id, department)
 VALUES (3, 'ABE'),
 (4, 'ITM');
-INSERT 0 2
 
 INSERT INTO students(user_id, programme)
-VALUES (2, 'Teknisk Matematik'),
-(5, 'Elektroteknik'),
+VALUES (1, 'Teknisk Matematik');
+
+INSERT INTO students(user_id, programme)
+VALUES (2, 'Teknisk Matematik'), 
+(5, 'Elektroteknik'), 
 (6, 'Teknisk Fysik');
-INSERT 0 3
-
-// 4 friendships
-INSERT INTO friendships (user_id, friend_user_id)
-VALUES (1, 2);
-INSERT 0 1
 
 INSERT INTO friendships (user_id, friend_user_id)
-VALUES (3, 6),
+VALUES (1, 2),
+(3, 6),
 (2, 5),
-(4, 6);
-INSERT 0 3
+(6, 4);
+
+INSERT INTO posts(user_id, title, place, content)
+VALUES (1, 'Pluggtips inför SQL-tentan', 'KTH Biblioteket', 'mina bästa knep');
+
+INSERT INTO posts(user_id, title, place, content)
+VALUES (2, 'Snö över campus', 'KTH Valhallavägen', 'Bild på innergården i snöfall');
+
+INSERT INTO attachments(post_id, url, file_type, file_size)
+VALUES (2, 'https://example.com/campus_snow.jpg', 'image', 245678);
+
+INSERT INTO posts(user_id, title, place, content)
+VALUES (3, 'Intro: SQL JOINs på 5 minuter', 'Zoom', 'Kort genomgång av...');
+
+INSERT INTO attachments(post_id, url, file_type, file_size)
+VALUES (3, 'https://example.com/sql_joins.mp4', 'video', 10485760);
+
+INSERT INTO likes(user_id, post_id) 
+VALUES (2, 1),
+(3, 1);
+
+INSERT INTO likes (user_id, post_id)
+VALUES (1, 2),
+(3, 2),
+(4, 2);
+
+INSERT INTO likes(user_id, post_id)
+VALUES (4, 3);
+
+INSERT INTO likes(user_id, post_id)
+VALUES (6, 3),
+(5, 3),
+(1, 3);
+
+INSERT INTO post_tag(post_id, tag_name)
+VALUES (2, 'social'),
+(3, 'studying'),
+(3, 'question'),
+(3, 'social');
+
+INSERT INTO events (user_id, title, place, start_date, end_date)
+VALUES (2, 'fika', 'ths cafe', '2025-11-05 14:15:00', '2025-11-05 15:00:00');
+
+INSERT INTO attendances(event_id, user_id)
+SELECT 1,
+CASE
+WHEN user_id = 2 THEN friend_user_id
+WHEN friend_user_id = 2 THEN user_id
+END
+FROM friendships
+WHERE user_id = 2 OR friend_user_id = 2;
+
+INSERT INTO subscriptions (user_id, date_of_payment, payment_method)
+VALUES (1, CURRENT_DATE, 'Swish'),
+(2, CURRENT_DATE - 3, 'Klarna'),
+(3, CURRENT_DATE - 10, 'Card'),
+(4, CURRENT_DATE - 15, 'Bitcoin'),
+(5, CURRENT_DATE - 30, 'Swish'),
+(6, CURRENT_DATE - 5, 'Card');
