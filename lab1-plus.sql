@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS mentorship (
     CONSTRAINT fk_mentor FOREIGN KEY (mentor_id) REFERENCES employees(employee_id) ON DELETE CASCADE,
     CONSTRAINT fk_mentee FOREIGN KEY (mentee_id) REFERENCES employees(employee_id) ON DELETE CASCADE,
     PRIMARY KEY(mentor_id, mentee_id),
-    CONSTRAINT check_no_self_mentorship CHECK (mentor_id <> mentee_id)
+    CONSTRAINT check_no_self_mentorship CHECK (mentor_id <> mentee_id),
+    CONSTRAINT check_mentor_mentee_assymetry CHECK (mentor_id > mentee_id)
 );
 
