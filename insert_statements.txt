@@ -1,3 +1,15 @@
+Attribute based constraints:
+Only depends on one attribute, for example id >= 0.
+
+Tuple based constraints:
+Depends on more than one column in a table, for example start_date <= end_date.
+
+Triggers:
+A trigger is a function that you can connect to an event and a schema. So you create a function that happens for example every time you INSERT in a specific scheme. For example a function that makes sure that attendees are friends with the host. It looks at two schemas, in this case friendships and attendances, which CHECK can not do. 
+
+Three events that can cause a trigger to activate are INSERT, DELETE, and UPDATE.
+
+
 3. Populating the database
 
 INSERT INTO users (full_name)
