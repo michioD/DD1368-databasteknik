@@ -56,3 +56,96 @@ LEFT JOIN posts_per_week pw
     ON pw.week = w.week
 WHERE w.week <= 30
 ORDER BY w.week;
+
+
+
+WITH edges AS (
+    SELECT userid AS u, friendid AS v FROM friend
+    UNION ALL
+    SELECT friendid AS u, userid AS v FROM friend
+),
+    friends AS (
+    SELECT
+        u AS userid,
+        COUNT(DISTINCT v)::int AS n_friends
+    FROM edges
+    WHERE u <> v
+    GROUP BY u
+)
+SELECT u.userid AS id,
+       u.name AS name,
+       (f.userid != 0) AS has_friends,
+       s.date AS registration_date
+FROM subscription s
+LEFT JOIN friends f ON f.userid = s.userid
+LEFT JOIN users u ON u.userid = s.userid
+WHERE DATE_PART('month', date) = 1
+ORDER BY u.name;
+
+
+SELECT
+  u.userid AS id,
+  u.name   AS name,
+  EXISTS (
+    SELECT 1
+    FROM friend f
+    WHERE
+      -- vänskap kan ligga på vilken sida som helst
+      (f.userid = s.userid OR f.friendid = s.userid)
+      -- ev. självkanter
+      AND f.userid <> f.friendid
+    LIMIT 1
+  ) AS has_friends,
+  s."date" AS registration_date
+FROM subscription s
+LEFT JOIN users u ON u.userid = s.userid
+WHERE EXTRACT(MONTH FROM s."date") = 1
+ORDER BY u.name NULLS LAST;
+
+
+
+WITH RECURSIVE
+edges AS (
+  SELECT userid AS u, friendid AS v FROM friend
+  UNION ALL
+  SELECT friendid AS u, userid AS v FROM friend
+),
+chain AS (
+  -- bassteg: starta på Anas med id 20
+  SELECT
+    20::int          AS current,
+    NULL::int        AS prev,
+    ARRAY[20]        AS path,
+    1                AS position
+  UNION ALL
+  -- rekursivt steg: nästa granne som inte skapar triangel eller cykel
+  SELECT
+    e.v              AS current,
+    c.current        AS prev,
+    c.path || e.v    AS path,
+    c.position + 1   AS position
+  FROM chain c
+  JOIN edges e ON e.u = c.current
+  WHERE NOT (e.v = ANY(c.path))                 -- inte redan i listan
+    AND NOT EXISTS (                            -- ingen länk till tidigare än grannen
+      SELECT 1
+      FROM edges x
+      JOIN unnest(c.path) AS p ON true
+      WHERE x.u = e.v
+        AND x.v = p
+        AND p <> c.current
+    )
+),
+names AS (
+  SELECT c.position, u.userid, u.name
+  FROM chain c
+  JOIN users u ON u.userid = c.current
+)
+SELECT
+  name AS name,
+  userid AS user_id,
+  LEAD(userid) OVER (ORDER BY position) AS friend_id
+FROM names
+ORDER BY position;
+
+
