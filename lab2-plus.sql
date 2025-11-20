@@ -1,26 +1,13 @@
-WITH 
-   posts_in_march AS (
-    SELECT post.userid,
-        post.postid,
-        COUNT(*) AS n_likes
-    FROM post
-    JOIN likes on likes.postid = post.postid
-    WHERE DATE_PART('month', post.date) = 3 --march
-    GROUP BY post.postid
-    ),
-    
-    
-    popular_selection AS (
-        SELECT users.userid, users.name, users.name AS names,  SUM(posts_in_march.n_likes) >= 50 AS popular
-        FROM users
-        JOIN posts_in_march 
-        GROUP BY users.userid
-    )
-
-    SELECT names, popular 
-
-    FROM popular_selection
-
-    ORDER BY 
-        names;
-
+WITH march_likes_per_user AS (
+    select p.userid, count(*) AS total_likes_in_march
+    FROM post p -- calles p as the alias of the post table
+    JOIN likes l on l.postid = p.postid 
+    WHERE EXTRACT(MONTH FROM p.date) = 3 -- 3 represents march
+    GROUP BY p.userid
+)
+SELECT 
+    u.name,
+    COALESCE(m.total_likes_in_march, 0) >= 50 AS recieved_likes 
+FROM users u
+LEFT JOIN march_likes_per_user m ON m.userid = u.userid
+ORDER BY u.name;
