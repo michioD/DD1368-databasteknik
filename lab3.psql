@@ -1,0 +1,56 @@
+WITH
+pairs AS (
+  SELECT country1 AS country1, country2 AS country2 FROM borders
+  UNION ALL
+  SELECT country2 AS country1, country1 AS country2 FROM borders
+), borders_countries AS (
+SELECT  c.name AS name, p.country2 AS borders_country
+ FROM pairs p
+ JOIN country c ON p.country1 = c.code
+GROUP BY c.name, p.country2
+), border_count AS (
+SELECT
+    name,
+    COUNT(DISTINCT borders_country) AS num
+FROM borders_countries
+GROUP BY name
+)
+SELECT
+    name,
+    num
+FROM border_count
+WHERE num = (SELECT MIN(num) FROM border_count)
+ORDER BY num ASC;
+
+
+
+
+WITH number_of_speakers AS (
+    SELECT
+        s.language AS language,
+        COALESCE(s.percentage, 0)*c.population/100.0 AS numberspeaker
+    FROM spoken s
+    JOIN country c ON c.code = s.country
+    WHERE s.percentage IS NOT NULL
+)
+SELECT
+    language,
+    SUM(numberspeaker)::int AS numberspeaker
+FROM number_of_speakers
+GROUP BY language
+ORDER BY numberspeaker DESC;
+
+
+
+SELECT
+    bc.country1 AS country1,
+    e1.gdp AS GDP1,
+    bc.country2 AS country2,
+    e2.gdp AS GDP2,
+    (GREATEST(e1.gdp, e2.gdp) / LEAST(e1.gdp, e2.gdp))::int AS ratio
+FROM borders bc
+JOIN economy e1 ON e1.country = bc.country1
+JOIN economy e2 ON e2.country = bc.country2
+ORDER BY ratio DESC
+;
+
