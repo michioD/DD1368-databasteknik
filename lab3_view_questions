@@ -1,0 +1,24 @@
+Questions for the presentation:
+      1. When would a view be beneficial compared to regular queries? For what reasons? 
+Till exempel för att dölja komplicerade SELECT bakom ett enkelt namn. T.ex 
+  CREATE VIEW nordic_countries AS
+  SELECT * FROM country
+  WHERE name IN ('Sweden', 'Norway', 'Finland', 'Denmark', 'Iceland');
+Då kan man skriva: 
+  SELECT * FROM nordic_countries;
+
+Eller för att dölja känslig data, endast ge användaren tillgång till vissa kolumner eller rader.
+  CREATE VIEW public_country_info AS
+  SELECT name, population
+  FROM country;
+För att dölja till exempel militärinfo om sådant skulle finnas.
+
+      2. What is stored in the database for non-materialised or materialised views respectively?
+I non-materialised view sparas inte själva datan, utan bara SQL-frågan. 
+I materialised view sparas resultaten som data i en tabell. Vid uppdatering av tabellerna, måste man refresha denna för att datan ska vara i sync.
+
+      3. Name one benefit of using materialised views over non-materialised ones.
+Den går snabbare för mycket data.
+
+      4. Name one benefit of using non-materialised views over materialised ones.
+Det tar inte lika mycket plats och går fortare för mycket data.
